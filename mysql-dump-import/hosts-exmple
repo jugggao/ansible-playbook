@@ -1,0 +1,11 @@
+[mysql_dump]
+10.10.10.10
+
+[mysql_import]
+10.10.10.11
+10.10.10.12
+
+[all:vars]
+ansible_ssh_port=22
+ansible_ssh_user=root
+ansible_ssh_pass=''

@@ -1,0 +1,64 @@
+---
+- hosts: mysql_import
+  gather_facts: yes
+  vars_files:
+  - "{{ playbook_dir }}/vars.yaml"
+
+  tasks:
+
+  - name: import 安装依赖包
+    package:
+      name:
+      - MySQL-python
+      - rsync
+      - sshpass
+      state: present
+
+  - name: import 确认恢复目录存在
+    file:
+      path: "{{ mysql_import_server_info.target_dir }}"
+      state: directory
+
+  - block:
+    - name: dump 安装依赖包
+      package:
+        name:
+        - MySQL-python
+        - rsync
+        - sshpass
+        state: present
+
+    - name: dump 确认备份目录存在
+      file:
+        path: "{{ mysql_dump_server_info.target_dir }}"
+        state: directory
+
+    - name: dump 备份数据库
+      mysql_db:
+        state: dump
+        name: "{{ item }}"
+        target: "{{ mysql_dump_server_info.target_dir }}/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
+        login_user: "{{ mysql_dump_server_info.login_user }}"
+        login_password: "{{ mysql_dump_server_info.login_password }}"
+        login_unix_socket : "{{ mysql_dump_server_info.login_unix_socket }}"
+      with_items: "{{ mysql_dump_databases }}"
+    delegate_to: "{{ groups['mysql_dump'][0] }}"
+    run_once: true
+
+  - name: rsync 同步备份文件
+    synchronize:
+      src: "{{ mysql_dump_server_info.target_dir }}/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
+      dest: "{{ mysql_import_server_info.target_dir }}/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
+      mode: push
+    with_items: "{{ mysql_dump_databases }}"
+    delegate_to: "{{ groups['mysql_dump'][0] }}"
+
+  - name: import 导入数据库
+    mysql_db:
+      state: import
+      name: "{{ item }}"
+      target: "{{ mysql_import_server_info.target_dir }}/{{ item }}-{{ ansible_date_time.date }}.sql.gz"
+      login_user: "{{ mysql_import_server_info.login_user }}"
+      login_password: "{{ mysql_import_server_info.login_password }}"
+      login_unix_socket : "{{ mysql_import_server_info.login_unix_socket }}"
+    with_items: "{{ mysql_dump_databases }}"
