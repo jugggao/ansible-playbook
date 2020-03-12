@@ -1,0 +1,14 @@
+mysql_dump_server_info:
+  login_user: "root"
+  login_password: ""
+  login_unix_socket: "/data/mysql/mysql.sock"
+  target_dir: "/data/mysql_backup/"
+
+mysql_dump_databases:
+- all
+
+mysql_import_server_info:
+  login_user: "root"
+  login_password: ""
+  login_unix_socket: "/data/mysql/mysql.sock"
+  target_dir: "/data/mysql_backup/"

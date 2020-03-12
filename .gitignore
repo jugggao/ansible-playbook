@@ -1,0 +1,7 @@
+.cert/
+.bin/
+.vim/
+.vagrant/
+*.retry
+*.vmdk
+hosts
