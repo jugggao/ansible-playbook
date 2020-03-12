@@ -5,3 +5,4 @@
 *.retry
 *.vmdk
 hosts
+.vscode/
